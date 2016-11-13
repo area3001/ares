@@ -14,5 +14,10 @@
   - install http://python.cocos2d.org
   - mqtt broker: mosquitto.org
   
+# todo
+  - add mqtt client code in the game
+  - add a test for generating a map via mqtt
+  - ...
+  
 # Credits
   - Sprites by Unlucky Studio, see http://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio/
