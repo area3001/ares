@@ -13,23 +13,24 @@ VELOCITY_MAX = 400
 VELOCITY_INERTIA = 3  # smaller means more inertia
 VELOCITY_BRAKE_VS_SPEED = 3
 VELOCITY_IMPACT_ON_TURNING = 0.0025
-TURNING_SPEED = 5
+TURNING_SPEED = 3
 VELOCITY_DECLINE = 0.995  # not touching controls means the velocity will go to zero
 
 class CollidableSprite(cocos.sprite.Sprite):
   def __init__(self, image, cx, cy, radius):
     super(CollidableSprite, self).__init__(image)
     self.position = (cx, cy)
-    self.cshape = cm.CircleShape(eu.Vector2(cx, cy), 40)
+    self.cshape = cm.CircleShape(eu.Vector2(cx, cy), 25)
 
   def update_in_collision_manager(self):
     collision_manager.remove_tricky(self)
-    self.cshape = cm.CircleShape(eu.Vector2(self.position[0], self.position[1]), 40)
+    self.cshape = cm.CircleShape(eu.Vector2(self.position[0], self.position[1]), 25)
     collision_manager.add(self)
 
   def maybe_impact(self):
     if collision_manager.any_near(self, 1):
       self.velocity = (- self.velocity[0], - self.velocity[1])
+      #self.velocity = (0, 0)
 
     # check if out of map
     self.position = (max(0, min(self.position[0], MAP_SIZE[0])), \
@@ -85,12 +86,32 @@ def main():
     player_layer = layer.Layer()
 
     # create an obstacle and add to layer
-    obstacle = CollidableSprite('sprites/obstacle.png', 200, 200, 0)
-    player_layer.add(obstacle)
-    obstacle.velocity = (0, 0)
+    obstacle1 = CollidableSprite('sprites/obstacle.png', 200, 200, 0)
+    player_layer.add(obstacle1)
+    obstacle1.velocity = (0, 0)
+    collision_manager.add(obstacle1)
+
+    # create an obstacle and add to layer
+    obstacle2 = CollidableSprite('sprites/obstacle.png', 320, 240, 0)
+    player_layer.add(obstacle2)
+    obstacle2.velocity = (0, 0)
+    collision_manager.add(obstacle2)
+
+    # create an obstacle and add to layer
+    obstacle3 = CollidableSprite('sprites/obstacle.png', 400, 380, 0)
+    player_layer.add(obstacle3)
+    obstacle3.velocity = (0, 0)
+    collision_manager.add(obstacle3)
+
+    # create an obstacle and add to layer
+    obstacle4 = CollidableSprite('sprites/obstacle.png', 490, 490, 0)
+    player_layer.add(obstacle4)
+    obstacle4.velocity = (0, 0)
+    collision_manager.add(obstacle4)
+
 
     # create the car and add to layer
-    car = CollidableSprite('sprites/taxi.png', 100, 100, 10)
+    car = CollidableSprite('sprites/Black_viper.png', 100, 100, 10)
     action = actions.interval_actions.ScaleBy(0.25, 0)
     car.do(action)
 
@@ -105,7 +126,6 @@ def main():
 
     # collisions
     collision_manager.add(car)
-    collision_manager.add(obstacle)
 
     # Attach a KeyStateHandler to the keyboard object.
     keyboard = key.KeyStateHandler()
