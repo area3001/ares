@@ -6,6 +6,8 @@ from cocos.director import director
 import cocos.euclid as eu
 import cocos.collision_model as cm
 import math
+import paho.mqtt.client as mqtt
+import json
 
 MAP_SIZE = (600, 600)
 
@@ -15,6 +17,9 @@ VELOCITY_BRAKE_VS_SPEED = 3
 VELOCITY_IMPACT_ON_TURNING = 0.0025
 TURNING_SPEED = 3
 VELOCITY_DECLINE = 0.995  # not touching controls means the velocity will go to zero
+
+
+
 
 class CollidableSprite(cocos.sprite.Sprite):
   def __init__(self, image, cx, cy, radius):
@@ -64,7 +69,6 @@ class Car(actions.Move):
     self.target.velocity = (velocity_x, velocity_y)
 
     # turn the car
-    print VELOCITY_IMPACT_ON_TURNING
     rl = TURNING_SPEED * rl * VELOCITY_IMPACT_ON_TURNING * abs(self.target.speed)
     rl = rl if self.target.speed > 0 else - rl
     action = actions.interval_actions.RotateBy(rl, 0)
@@ -72,6 +76,67 @@ class Car(actions.Move):
 
     self.target.update_in_collision_manager()
     self.target.maybe_impact()
+
+
+class Mqtt_layer(layer.Layer):
+    def __init__(self, collision_mgr):
+        super(Mqtt_layer, self).__init__()
+
+        self.collision_mgr = collision_mgr
+
+        # MQTT part
+        def on_marker(client, userdata, msg):
+            print("marker: '" + str(msg.payload))
+            payload = json.loads(msg.payload)
+            print payload["position"][0]
+            print payload["position"][1]
+            # create an obstacle and add to layer
+            # obstacle3 = CollidableSprite('sprites/obstacle.png', 200, 200, 0)
+            # player_layer.add(obstacle3)
+            # obstacle3.velocity = (0, 0)
+            # collision_manager.add(obstacle3)
+
+        def on_connect(client, userdata, flags, rc):
+            print("Connected with result code " + str(rc))
+
+            # client.message_callback_add("ares/video/markers", on_marker)
+
+            # Subscribing in on_connect() means that if we lose the connection and
+            # reconnect then subscriptions will be renewed.
+            client.subscribe("ares/video/markers")
+            client.subscribe("ares/video/edges")
+            client.subscribe("ares/video/objects")
+            client.subscribe("ares/mgt/features/add")
+            client.subscribe("ares/mgt/features/remove")
+
+        # The callback for when a PUBLISH message is received from the server which is not handled in other handlers
+        def on_message(client, userdata, msg):
+            print("Received message '" + str(msg.payload) + "' on topic '" \
+                  + msg.topic + "' with QoS " + str(msg.qos))
+
+            payload = json.loads(msg.payload)
+            x = payload["position"][0]
+            y = payload["position"][1]
+            # create an obstacle and add to layer
+            obstacle3 = CollidableSprite('sprites/obstacle.png', x, y, 0)
+            self.add(obstacle3)
+            # obstacle3.velocity = (0, 0)
+            self.collision_mgr.add(obstacle3)
+
+        self.client = mqtt.Client()
+        self.client.on_connect = on_connect
+        self.client.on_message = on_message
+
+        self.client.connect("localhost", 1883, 60)
+
+        # Blocking call that processes network traffic, dispatches callbacks and
+        # handles reconnecting.
+        # Other loop*() functions are available that give a threaded interface and a
+        # manual interface.
+
+    def draw(self):
+        self.client.loop(0)
+
 
 # Main class
 def main():
@@ -83,7 +148,7 @@ def main():
     director.init(width=MAP_SIZE[0], height=MAP_SIZE[1], autoscale=True, resizable=True)
 
     # Create a layer
-    player_layer = layer.Layer()
+    player_layer = Mqtt_layer(collision_manager)
 
     # create an obstacle and add to layer
     obstacle1 = CollidableSprite('sprites/obstacle.png', 200, 200, 0)
@@ -98,17 +163,10 @@ def main():
     collision_manager.add(obstacle2)
 
     # create an obstacle and add to layer
-    obstacle3 = CollidableSprite('sprites/obstacle.png', 400, 380, 0)
-    player_layer.add(obstacle3)
-    obstacle3.velocity = (0, 0)
-    collision_manager.add(obstacle3)
-
-    # create an obstacle and add to layer
     obstacle4 = CollidableSprite('sprites/obstacle.png', 490, 490, 0)
     player_layer.add(obstacle4)
     obstacle4.velocity = (0, 0)
     collision_manager.add(obstacle4)
-
 
     # create the car and add to layer
     car = CollidableSprite('sprites/Black_viper.png', 100, 100, 10)
