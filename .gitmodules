@@ -1,0 +1,3 @@
+[submodule "ansible/playbook-opencv"]
+	path = ansible/playbook-opencv
+	url = https://github.com/chrismeyersfsu/playbook-opencv.git
