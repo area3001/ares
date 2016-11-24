@@ -19,9 +19,14 @@
   - pc: install http://python.cocos2d.org
   
 # todo
-  - add mqtt client code in the game
-  - add a test for generating a map via mqtt
-  - ...
+  - make test setup
+  - rpi: simplify contours from findcontours
+  - rpi: post contours to mqtt
+  - pc: show the contours in image
+  - rpi: speedup make a threaded version
+  - pc: game layer collision detection will need to be rewritten
+  
+At that moment we can make games
   
 # Credits
   - Sprites by Unlucky Studio, see http://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio/
